@@ -1,8 +1,11 @@
 
 #include "Snake.h"
 
+using namespace snake;
+
+#include <ctime>
 #include <iostream>
-#include <cmath>
+#include <sstream>
 
 #ifdef __APPLE__
 #include <SDL2/SDL.h>
@@ -71,7 +74,6 @@ void Clean(SDL_Window **window, SDL_Renderer **renderer)
 
 int main(int argc, char *argv[])
 {
-    using namespace snake;
 
     SDL_Window *window;
     SDL_Renderer *renderer;
@@ -82,16 +84,23 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    Snake game(renderer, SDL_GetTicks(), GAME_WIDTH, GAME_HEIGHT, GAME_START_X, GAME_START_Y, GAME_SNAKE_MIN_LENGTH, GAME_APPLES);
+    Snake game(renderer, SDL_GetTicks() ^ std::time(0), GAME_WIDTH, GAME_HEIGHT, GAME_START_X, GAME_START_Y, GAME_SNAKE_MIN_LENGTH, GAME_APPLES);
     Direction direction = NORTH;
     Direction lastMove = NONE;
     bool quit = false;
     SDL_Event e;
+    unsigned int level = 1;
     unsigned int lastUpdate = SDL_GetTicks();
     unsigned int speed = GAME_INITIAL_SPEED;
 
     while (!quit)
     {
+        if (game.state() == ERROR)
+        {
+            SDL_ShowSimpleMessageBox(NULL, "Error", "There was an error. Closing game.", NULL);
+            break;
+        }
+
         while (SDL_PollEvent(&e))
         {
             switch (e.type)
@@ -119,6 +128,7 @@ int main(int argc, char *argv[])
                         direction = EAST;
                     break;
                 case SDLK_r:
+                    level = 1;
                     speed = GAME_INITIAL_SPEED;
                     direction = NORTH;
                     game.reset();
@@ -130,7 +140,18 @@ int main(int argc, char *argv[])
 
         if (game.state() == WON)
         {
+            level += 1;
             speed = static_cast<unsigned int>(speed * GAME_INCREASE_SPEED_FACTOR);
+            direction = NORTH;
+            game.reset();
+        }
+        else if (game.state() == LOST)
+        {
+            std::stringstream message;
+            message << "You got to level " << level << "!";
+            SDL_ShowSimpleMessageBox(NULL, "Game Over", message.str().c_str(), NULL);
+            level = 1;
+            speed = GAME_INITIAL_SPEED;
             direction = NORTH;
             game.reset();
         }
