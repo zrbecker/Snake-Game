@@ -27,38 +27,36 @@ const double GAME_INCREASE_SPEED_FACTOR = 0.7;
 
 bool Initialize(SDL_Window **window, SDL_Renderer **renderer)
 {
-    bool success = true;
-
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         std::cerr << "SDL could not be initialized. ";
         std::cerr << "Error: " << SDL_GetError() << std::endl;
-        success = false;
-    }
-    else
-    {
-        *window = SDL_CreateWindow("Snake",
-                SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-        if (*window == NULL)
-        {
-            std::cerr << "SDL window could not be created. ";
-            std::cerr << "Error: " << SDL_GetError() << std::endl;
-            success = false;
-        }
-        else
-        {
-            *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED);
-            if (*renderer == NULL)
-            {
-                std::cerr << "SDL renderer could not be created. ";
-                std::cerr << "Error: " << SDL_GetError() << std::endl;
-                success = false;
-            }
-        }
+        return false;
     }
 
-    return success;
+    *window = SDL_CreateWindow("Snake",
+                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                               SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    if (*window == NULL)
+    {
+        SDL_Quit();
+        std::cerr << "SDL window could not be created. ";
+        std::cerr << "Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED);
+    if (*renderer == NULL)
+    {
+        SDL_DestroyWindow(*window);
+        *window = NULL;
+        SDL_Quit();
+        std::cerr << "SDL renderer could not be created. ";
+        std::cerr << "Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 void Clean(SDL_Window **window, SDL_Renderer **renderer)
@@ -81,72 +79,71 @@ int main(int argc, char *argv[])
     if (!Initialize(&window, &renderer))
     {
         std::cerr << "Failed to initialize." << std::endl;
+        return 1;
     }
-    else
-    {
-        Snake game(renderer, SDL_GetTicks(), GAME_WIDTH, GAME_HEIGHT, GAME_START_X, GAME_START_Y, GAME_SNAKE_MIN_LENGTH, GAME_APPLES);
-        Direction direction = NORTH;
-        Direction lastMove = NONE;
-        bool quit = false;
-        SDL_Event e;
-        unsigned int lastUpdate = SDL_GetTicks();
-        unsigned int speed = GAME_INITIAL_SPEED;
 
-        while (!quit)
+    Snake game(renderer, SDL_GetTicks(), GAME_WIDTH, GAME_HEIGHT, GAME_START_X, GAME_START_Y, GAME_SNAKE_MIN_LENGTH, GAME_APPLES);
+    Direction direction = NORTH;
+    Direction lastMove = NONE;
+    bool quit = false;
+    SDL_Event e;
+    unsigned int lastUpdate = SDL_GetTicks();
+    unsigned int speed = GAME_INITIAL_SPEED;
+
+    while (!quit)
+    {
+        while (SDL_PollEvent(&e))
         {
-            while (SDL_PollEvent(&e))
+            switch (e.type)
             {
-                switch (e.type)
+            case SDL_QUIT:
+                quit = true;
+                break;
+            case SDL_KEYDOWN:
+                switch (e.key.keysym.sym)
                 {
-                case SDL_QUIT:
-                    quit = true;
-                    break;
-                case SDL_KEYDOWN:
-                    switch (e.key.keysym.sym)
-                    {
-                    case SDLK_UP:
-                        if (lastMove != SOUTH)
-                            direction = NORTH;
-                        break;
-                    case SDLK_DOWN:
-                        if (lastMove != NORTH)
-                            direction = SOUTH;
-                        break;
-                    case SDLK_LEFT:
-                        if (lastMove != EAST)
-                            direction = WEST;
-                        break;
-                    case SDLK_RIGHT:
-                        if (lastMove != WEST)
-                            direction = EAST;
-                        break;
-                    case SDLK_r:
-                        speed = GAME_INITIAL_SPEED;
+                case SDLK_UP:
+                    if (lastMove != SOUTH)
                         direction = NORTH;
-                        game.reset();
-                        break;
-                    }
+                    break;
+                case SDLK_DOWN:
+                    if (lastMove != NORTH)
+                        direction = SOUTH;
+                    break;
+                case SDLK_LEFT:
+                    if (lastMove != EAST)
+                        direction = WEST;
+                    break;
+                case SDLK_RIGHT:
+                    if (lastMove != WEST)
+                        direction = EAST;
+                    break;
+                case SDLK_r:
+                    speed = GAME_INITIAL_SPEED;
+                    direction = NORTH;
+                    game.reset();
                     break;
                 }
+                break;
             }
+        }
 
-            if (game.state() == WON)
-            {
-                speed = static_cast<unsigned int>(speed * GAME_INCREASE_SPEED_FACTOR);
-                direction = NORTH;
-                game.reset();
-            }
+        if (game.state() == WON)
+        {
+            speed = static_cast<unsigned int>(speed * GAME_INCREASE_SPEED_FACTOR);
+            direction = NORTH;
+            game.reset();
+        }
 
-            unsigned int now = SDL_GetTicks();
-            if (now - lastUpdate > speed)
-            {
-                game.move(direction);
-                lastMove = direction;
-                lastUpdate = now;
+        unsigned int now = SDL_GetTicks();
+        if (now - lastUpdate > speed)
+        {
+            game.move(direction);
+            lastMove = direction;
+            lastUpdate = now;
 
-                SDL_RenderCopy(renderer, game.cells(), NULL, NULL);
-                SDL_RenderPresent(renderer);
-            }
+            SDL_RenderCopy(renderer, game.cells(), NULL, NULL);
+            SDL_RenderPresent(renderer);
         }
     }
 
@@ -154,4 +151,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
