@@ -16,8 +16,8 @@ namespace snake
                  , m_cells(width * height, EMPTY)
                  , m_snake()
                  , m_min_length(min_length)
-                 , m_apples(apples)
                  , m_max_apples(apples)
+                 , m_apples(apples)
                  , m_width(width)
                  , m_height(height)
                  , m_start_x(start_x)
@@ -111,6 +111,8 @@ namespace snake
                 return;
             }
             break;
+        case NONE:
+            return;
         }
 
         switch (m_cells[next])
@@ -127,6 +129,8 @@ namespace snake
         case WALL:
         case SNAKE:
             m_state = LOST;
+            break;
+        default:
             break;
         }
 

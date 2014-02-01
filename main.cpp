@@ -3,7 +3,12 @@
 
 #include <iostream>
 #include <cmath>
+
+#ifdef __APPLE__
+#include <SDL2/SDL.h>
+#else
 #include <SDL.h>
+#endif
 
 const unsigned int SCREEN_WIDTH = 500;
 const unsigned int SCREEN_HEIGHT = 500;
