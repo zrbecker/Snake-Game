@@ -3,10 +3,13 @@
 #define SNAKE_H
 
 #include <queue>
-#include <vector>
 #include <random>
 
-#include <iostream>
+#ifdef __APPLE__
+#include <SDL2/SDL.h>
+#else
+#include <SDL.h>
+#endif
 
 namespace snake
 {
@@ -50,13 +53,16 @@ namespace snake
         * min_length - minimum length of snake
         * apples - number of apples on board
         */
-        Snake(unsigned int random_seed = 0,
+        Snake(SDL_Renderer *renderer,
+              unsigned int random_seed = 0,
               unsigned int width = 20,
               unsigned int height = 20,
               unsigned int x = 9,
               unsigned int y = 9,
               unsigned int min_length = 5,
               unsigned int apples = 10);
+
+        virtual ~Snake();
 
         /*
         * Returns the current state of the game.
@@ -86,9 +92,9 @@ namespace snake
         unsigned int height() const;
 
         /*
-        * Returns std::vector<Cell> representing the current board
+        * Returns SDL_Texture* representing the current board
         */
-        const std::vector<Cell> &cells() const;
+        SDL_Texture *cells();
 
         /*
         * Returns std::queue<unsigned int> representing the indices
@@ -109,7 +115,7 @@ namespace snake
 
     private:
         State m_state;
-        std::vector<Cell> m_cells;
+        SDL_Texture *m_cells;
         std::queue<unsigned int> m_snake;
         unsigned int m_min_length;
         unsigned int m_max_apples;
