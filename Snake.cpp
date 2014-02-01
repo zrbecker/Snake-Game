@@ -179,60 +179,63 @@ namespace snake
 
     void Snake::reset()
     {
-        unsigned int *pixels;
-        int pitch;
-        if (SDL_LockTexture(m_cells, NULL, reinterpret_cast<void **>(&pixels), &pitch) < 0)
+        if (m_state != ERROR)
         {
-            std::cerr << "Failed to edit game board. ";
-            std::cerr << "Error: " << SDL_GetError() << std::endl;
-            m_state = ERROR;
-        }
-        else
-        {
-            m_state = PLAYING;
-            for (unsigned int i = 0; i < m_width * m_height; ++i)
-                pixels[i] = EMPTY;
-            m_snake.swap(std::queue<unsigned int>()); // Swap with empty queue
-            m_apples = m_max_apples;
-            m_grow = 0;
-
-            // Generate random positions for apples
-            std::unordered_set<unsigned int> apple_positions;
-            for (unsigned int i = 0; i < m_apples; ++i)
+            unsigned int *pixels;
+            int pitch;
+            if (SDL_LockTexture(m_cells, NULL, reinterpret_cast<void **>(&pixels), &pitch) < 0)
             {
-                unsigned int r;
-                do
+                std::cerr << "Failed to edit game board. ";
+                std::cerr << "Error: " << SDL_GetError() << std::endl;
+                m_state = ERROR;
+            }
+            else
+            {
+                m_state = PLAYING;
+                for (unsigned int i = 0; i < m_width * m_height; ++i)
+                    pixels[i] = EMPTY;
+                m_snake.swap(std::queue<unsigned int>()); // Swap with empty queue
+                m_apples = m_max_apples;
+                m_grow = 0;
+
+                // Generate random positions for apples
+                std::unordered_set<unsigned int> apple_positions;
+                for (unsigned int i = 0; i < m_apples; ++i)
                 {
-                    unsigned int rx = m_rand() % (m_width - 2) + 1;
-                    unsigned int ry = m_rand() % (m_height - 2) + 1;
-                    r = rx + m_width * ry;
+                    unsigned int r;
+                    do
+                    {
+                        unsigned int rx = m_rand() % (m_width - 2) + 1;
+                        unsigned int ry = m_rand() % (m_height - 2) + 1;
+                        r = rx + m_width * ry;
+                    }
+                    while (apple_positions.count(r) != 0 || r == (m_start_x + m_start_y * m_width));
+                    apple_positions.insert(r);
                 }
-                while (apple_positions.count(r) != 0 || r == (m_start_x + m_start_y * m_width));
-                apple_positions.insert(r);
+
+                // Set initial snake
+                pixels[m_start_x + m_start_y * m_width] = SNAKE;
+                m_snake.push(m_start_x + m_start_y * m_width);
+
+                // Set walls
+                for (unsigned int i = 0; i < m_width; ++i)
+                {
+                    pixels[i] = WALL;
+                    pixels[i + m_width * (m_height - 1)] = WALL;
+                }
+
+                for (unsigned int i = 1; i < m_height - 1; ++i)
+                {
+                    pixels[i * m_width] = WALL;
+                    pixels[(i + 1) * m_width - 1] = WALL;
+                }
+
+                // Set apples
+                for (unsigned int i : apple_positions)
+                    pixels[i] = APPLE;
+
+                SDL_UnlockTexture(m_cells);
             }
-
-            // Set initial snake
-            pixels[m_start_x + m_start_y * m_width] = SNAKE;
-            m_snake.push(m_start_x + m_start_y * m_width);
-
-            // Set walls
-            for (unsigned int i = 0; i < m_width; ++i)
-            {
-                pixels[i] = WALL;
-                pixels[i + m_width * (m_height - 1)] = WALL;
-            }
-
-            for (unsigned int i = 1; i < m_height - 1; ++i)
-            {
-                pixels[i * m_width] = WALL;
-                pixels[(i + 1) * m_width - 1] = WALL;
-            }
-
-            // Set apples
-            for (unsigned int i : apple_positions)
-                pixels[i] = APPLE;
-
-            SDL_UnlockTexture(m_cells);
         }
     }
 }
