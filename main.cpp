@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
     {
         if (game.state() == ERROR)
         {
-            SDL_ShowSimpleMessageBox(NULL, "Error", "There was an error. Closing game.", NULL);
+            SDL_ShowSimpleMessageBox(0, "Error", "There was an error. Closing game.", NULL);
             break;
         }
 
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
         {
             std::stringstream message;
             message << "You got to level " << level << "!";
-            SDL_ShowSimpleMessageBox(NULL, "Game Over", message.str().c_str(), NULL);
+            SDL_ShowSimpleMessageBox(0, "Game Over", message.str().c_str(), NULL);
             level = 1;
             speed = GAME_INITIAL_SPEED;
             direction = NORTH;

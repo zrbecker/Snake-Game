@@ -199,7 +199,8 @@ namespace snake
         m_state = PLAYING;
         for (unsigned int i = 0; i < m_width * m_height; ++i)
             pixels[i] = EMPTY;
-        m_snake.swap(std::queue<unsigned int>()); // Swap with empty queue
+        std::queue<unsigned int> empty_queue;
+        m_snake.swap(empty_queue); // Swap with empty queue
         m_apples = m_max_apples;
         m_grow = 0;
 
