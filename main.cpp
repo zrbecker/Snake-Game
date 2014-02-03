@@ -48,7 +48,7 @@ bool Initialize(SDL_Window **window, SDL_Renderer **renderer)
         return false;
     }
 
-    *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED);
+    *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (*renderer == NULL)
     {
         SDL_DestroyWindow(*window);
